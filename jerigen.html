@@ -63,10 +63,13 @@
                     </div>
 
                     <div class="form-group">
-    <label>Jumlah:</label>
-    <div class="jumlah-container">
+     <label>Jumlah:</label>
+<div class="jumlah-container">
         <button type="button" onclick="ubahJumlah(-1)">-</button>
-        <input type="number" id="jumlahProduk" value="1" min="1"  max="1000" oninput="ubahJumlahManual(this.value)" />
+       <input type="number" id="jumlahProduk" value="1" min="1" max="20" 
+       onfocus="clearJumlah(this)" 
+       onblur="resetJumlah(this)" 
+       oninput="ubahJumlahKetik(this)" />
         <button type="button" onclick="ubahJumlah(1)">+</button>
     </div>
 </div>
@@ -405,4 +408,5 @@ function tutupPopup(){
 
 
 </body>
+
 </html>
