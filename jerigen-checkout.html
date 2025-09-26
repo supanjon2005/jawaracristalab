@@ -2424,7 +2424,7 @@ window.open(urlWA, "_blank");
 </script>
 
 
-<script>
+
   document.addEventListener('DOMContentLoaded', () => {
     const inputKab = document.getElementById('cariKabupaten');
     const listKab  = document.getElementById('daftarKabupaten');
@@ -2509,6 +2509,93 @@ window.open(urlWA, "_blank");
       if (!listKab.contains(e.target) && e.target !== inputKab) closeList();
     });
   });
+
+
+
+  <script>
+// ---------- Helper: ubah string "Rp 12.345" atau "12.345" jadi number ----------
+function parseRupiahToInt(str) {
+  if (!str && str !== 0) return 0;
+  // hapus non-digit
+  const digits = String(str).replace(/[^0-9]/g, '');
+  return digits ? parseInt(digits, 10) : 0;
+}
+
+// ---------- Fungsi update total UI di ringkasan ----------
+function updateTotalDiDetailDariUI() {
+  // Ambil nilai harga produk dan biaya kemasan dari localStorage (sama yg filemu pakai)
+  const hargaProduk = parseInt(localStorage.getItem('hargaProduk')) || 0;
+  const biayaKemasan = parseInt(localStorage.getItem('biayaKemasan')) || 0;
+
+  // Ambil ongkir yang tampil di UI (elemen #ongkir) — jika belum ada, cek input/elemen lain
+  let ongkirEl = document.querySelector('#ongkir');
+  let ongkir = 0;
+  if (ongkirEl) {
+    ongkir = parseRupiahToInt(ongkirEl.textContent || ongkirEl.value || '');
+  } else {
+    // fallback: cari elemen yang biasa menampilkan ongkir (class / data-*)
+    const possible = document.querySelector('.ongkir') || document.querySelector('[data-ongkir]');
+    ongkir = possible ? parseRupiahToInt(possible.textContent || possible.value || '') : 0;
+  }
+
+  const total = hargaProduk + biayaKemasan + ongkir;
+
+  // Cari span total di dalam .detail-teks dan update; jika belum ada buat id agar bisa diupdate lagi
+  const detail = document.querySelector('.detail-teks');
+  if (!detail) return; // jika struktur berbeda, tidak crash
+
+  let spanTotal = detail.querySelector('span#totalBayar');
+  if (!spanTotal) {
+    // coba cari span terakhir pada baris total kalau sudah ada markup
+    spanTotal = detail.querySelector('.total span') || detail.querySelector('span');
+    if (spanTotal) {
+      spanTotal.id = 'totalBayar';
+    } else {
+      // buat baris total baru jika sama sekali belum ada
+      const el = document.createElement('div');
+      el.className = 'total';
+      el.innerHTML = `Total Bayar: <span id="totalBayar">Rp${total.toLocaleString('id-ID')}</span>`;
+      detail.appendChild(el);
+      return;
+    }
+  }
+
+  // update teks dengan format rupiah
+  spanTotal.textContent = 'Rp' + total.toLocaleString('id-ID');
+}
+
+// ---------- Integrasi: panggil updateTotal ketika ongkir/kurir berubah ----------
+function attachOngkirAutoUpdate() {
+  // 1) Jika ada fungsi renderOngkir(ongkir) di file-mu, usahakan panggil updateTotalDiDetailDariUI() di akhir fungsi itu.
+  // Tapi untuk jaga-jaga: pasang event listener pada perubahan pada elemen kurir/kabupaten dan juga mutation observer pada #ongkir.
+
+  // a) Listener untuk elemen pilihan kurir / kabupaten (radio/select/button)
+  const kurirInputs = document.querySelectorAll('input[name="kurir"], select[name="kabupaten"], input[name="kabupaten"]');
+  kurirInputs.forEach(i => {
+    i.addEventListener('change', () => {
+      // biarkan proses hitung ongkir internal berjalan dulu (jika ada), lalu update UI setelah 50ms
+      setTimeout(updateTotalDiDetailDariUI, 50);
+    });
+  });
+
+  // b) MutationObserver: jika skrip lain menulis ke #ongkir, kita deteksi perubahan dan update total
+  const target = document.querySelector('#ongkir');
+  if (target) {
+    const mo = new MutationObserver(() => updateTotalDiDetailDariUI());
+    mo.observe(target, { childList: true, subtree: true, characterData: true });
+  }
+
+  // c) panggil sekali pada load agar tampilan awal benar
+  updateTotalDiDetailDariUI();
+}
+
+// jalankan ketika DOM siap
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', attachOngkirAutoUpdate);
+} else {
+  attachOngkirAutoUpdate();
+}
+
   </script>
 
 <script>feather.replace();</script>
@@ -2516,6 +2603,7 @@ window.open(urlWA, "_blank");
 
 </body>
 </html>
+
 
 
 
