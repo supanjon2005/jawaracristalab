@@ -63,7 +63,7 @@
                     </div>
 
                     <div class="form-group">
-     <label>Jumlah:</label>
+    <label>Jumlah:</label>
 <div class="jumlah-container">
         <button type="button" onclick="ubahJumlah(-1)">-</button>
        <input type="number" id="jumlahProduk" value="1" min="1" max="20" 
@@ -119,13 +119,15 @@
   </p>
                                </div>
                            </div>
+                            
                       </div>
+                      <button class="confirm-button" type="button" onclick="orderSekarangjerigen()">Order Sekarang</button>
                     </div>
                     </div>
                     </div>
 
                                            
-                      <button class="confirm-button" type="button" onclick="orderSekarangjerigen()">Order Sekarang</button>
+                     
                       
                  </form>
              </div>
@@ -253,8 +255,8 @@
 
 <script>
     function ubahJumlah(angka) {
-      
-      if (angka > 0 && jumlahBeli >= 1000) {
+      // kalau sudah 20 dan mau tambah lagi -> tampilkan popup & batal
+      if (angka > 0 && jumlahBeli >= 100000) {
         document.getElementById('popupMax').style.display = 'block';
         return;
       }
@@ -264,30 +266,48 @@
       // minimal 1
       if (jumlahBeli < 1) jumlahBeli = 1;
     
-      // maksimal 20 (hard-cap)
-      if (jumlahBeli > 1000) jumlahBeli = 1000;
+      
+      
     
       // update UI
       document.getElementById("jumlahProduk").value = jumlahBeli;
       updateSummary();
     }
 
-    function ubahJumlahManual(val) {
-  let angka = parseInt(val);
+    function ubahJumlahKetik(input) {
+  let val = parseInt(input.value);
 
-  if (isNaN(angka) || angka < 1) {
-    angka = 1; // minimal 1
+  // kalau kosong, pakai default 1
+  if (isNaN(val) || val < 1) {
+    val = 1;
   }
-  if (angka > 1000) {
-    angka = 1000; // maksimal 1000
+  
+  if (val > 10000) {
+    val = 10000;
     document.getElementById('popupMax').style.display = 'block';
   }
 
-  jumlahBeli = angka;
-  document.getElementById("jumlahProduk").value = jumlahBeli;
+  jumlahBeli = val;
+  input.value = jumlahBeli;
   updateSummary();
 }
-    
+
+   
+function clearJumlah(input) {
+  // Kosongkan input saat pertama kali fokus
+  if (input.value === "1") {
+    input.value = "";
+  }
+}
+
+function resetJumlah(input) {
+  // Kalau dikosongkan lalu keluar dari input → set default ke 1
+  if (input.value === "" || parseInt(input.value) < 1) {
+    input.value = 1;
+    jumlahBeli = 1;
+    updateSummary();
+  }
+}  
 
 
 
@@ -408,5 +428,5 @@ function tutupPopup(){
 
 
 </body>
-
 </html>
+
